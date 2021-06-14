@@ -104,24 +104,7 @@ class LedgerRecoveryOp implements ReadEntryListener, AddCallback {
                     public void readLastConfirmedDataComplete(int rc, RecoveryData data) {
                         if (rc == BKException.Code.OK) {
                             synchronized (lh) {
-                                /**
-                                 The lowest an LAC can be for use in recovery is the first entry id
-                                 of the current ensemble - 1.
-                                 All ensembles prior to the current one, if any, are confirmed and
-                                 immutable (so are not part of the recovery process).
-                                 So we take the highest of:
-                                 - the LAC returned by the current bookie ensemble (could be -1)
-                                 - the first entry id of the current ensemble - 1.
-                                 */
-                                Long lastEnsembleEntryId = lh.getVersionedLedgerMetadata()
-                                        .getValue()
-                                        .getAllEnsembles()
-                                        .lastEntry()
-                                        .getKey();
-
-                                lh.lastAddPushed = lh.lastAddConfirmed = Math.max(data.getLastAddConfirmed(),
-                                        (lastEnsembleEntryId - 1));
-
+                                lh.lastAddPushed = lh.lastAddConfirmed = data.getLastAddConfirmed();
                                 lh.length = data.getLength();
                                 lh.pendingAddsSequenceHead = lh.lastAddConfirmed;
                                 startEntryToRead = endEntryToRead = lh.lastAddConfirmed;

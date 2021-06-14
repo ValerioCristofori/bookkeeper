@@ -94,8 +94,7 @@ public class ScanAndCompareGarbageCollector implements GarbageCollector {
         this.ledgerManager = ledgerManager;
         this.ledgerStorage = ledgerStorage;
         this.conf = conf;
-        this.selfBookieAddress = BookieImpl.getBookieId(conf);
-
+        this.selfBookieAddress = Bookie.getBookieId(conf);
         this.gcOverReplicatedLedgerIntervalMillis = conf.getGcOverreplicatedLedgerWaitTimeMillis();
         this.lastOverReplicatedLedgerGcTimeMillis = System.currentTimeMillis();
         if (gcOverReplicatedLedgerIntervalMillis > 0) {

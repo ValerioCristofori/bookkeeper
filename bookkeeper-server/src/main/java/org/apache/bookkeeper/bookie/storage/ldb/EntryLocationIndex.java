@@ -24,6 +24,7 @@ import com.google.common.collect.Iterables;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.nio.file.FileSystems;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -53,7 +54,8 @@ public class EntryLocationIndex implements Closeable {
 
     public EntryLocationIndex(ServerConfiguration conf, KeyValueStorageFactory storageFactory, String basePath,
             StatsLogger stats) throws IOException {
-        locationsDb = storageFactory.newKeyValueStorage(basePath, "locations", DbConfigType.Huge, conf);
+        String locationsDbPath = FileSystems.getDefault().getPath(basePath, "locations").toFile().toString();
+        locationsDb = storageFactory.newKeyValueStorage(locationsDbPath, DbConfigType.Huge, conf);
 
         this.stats = new EntryLocationIndexStats(
             stats,
@@ -194,7 +196,6 @@ public class EntryLocationIndex implements Closeable {
         long deletedEntriesInBatch = 0;
 
         Batch batch = locationsDb.newBatch();
-        final byte[] firstDeletedKey = new byte[keyToDelete.array.length];
 
         try {
             for (long ledgerId : ledgersToDelete) {
@@ -237,9 +238,7 @@ public class EntryLocationIndex implements Closeable {
                     }
                     batch.remove(keyToDelete.array);
                     ++deletedEntriesInBatch;
-                    if (deletedEntries++ == 0) {
-                        System.arraycopy(keyToDelete.array, 0, firstDeletedKey, 0, firstDeletedKey.length);
-                    }
+                    ++deletedEntries;
                 }
 
                 if (deletedEntriesInBatch > DELETE_ENTRIES_BATCH_SIZE) {
@@ -252,10 +251,8 @@ public class EntryLocationIndex implements Closeable {
             try {
                 batch.flush();
                 batch.clear();
-                if (deletedEntries != 0) {
-                    locationsDb.compact(firstDeletedKey, keyToDelete.array);
-                }
             } finally {
+
                 firstKeyWrapper.recycle();
                 lastKeyWrapper.recycle();
                 keyToDelete.recycle();

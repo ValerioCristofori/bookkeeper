@@ -16,7 +16,6 @@
  */
 package org.apache.bookkeeper.stats.prometheus;
 
-import java.util.Map;
 import java.util.concurrent.atomic.LongAdder;
 
 import org.apache.bookkeeper.stats.Counter;
@@ -29,12 +28,6 @@ import org.apache.bookkeeper.stats.Counter;
  */
 public class LongAdderCounter implements Counter {
     private final LongAdder counter = new LongAdder();
-
-    private final Map<String, String> labels;
-
-    public LongAdderCounter(Map<String, String> labels) {
-        this.labels = labels;
-    }
 
     @Override
     public void clear() {
@@ -59,9 +52,5 @@ public class LongAdderCounter implements Counter {
     @Override
     public Long get() {
         return counter.sum();
-    }
-
-    public Map<String, String> getLabels() {
-        return labels;
     }
 }

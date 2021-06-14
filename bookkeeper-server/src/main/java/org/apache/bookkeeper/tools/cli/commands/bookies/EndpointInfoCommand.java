@@ -80,13 +80,13 @@ public class EndpointInfoCommand extends BookieCommand<EndpointInfoCommand.Endpo
         ClientConfiguration adminConf = new ClientConfiguration(conf);
         BookKeeperAdmin admin = new BookKeeperAdmin(adminConf);
         try {
-            final String bookieIdStr = flags.bookie;
-            if (bookieIdStr == null || bookieIdStr.isEmpty()) {
+            final String bookieId = flags.bookie;
+            if (bookieId == null || bookieId.isEmpty()) {
                 throw new IllegalArgumentException("BookieId is required");
             }
-            BookieId bookieId = BookieId.parse(bookieIdStr);
+            BookieId address = BookieId.parse(bookieId);
             Collection<BookieId> allBookies = admin.getAllBookies();
-            if (!allBookies.contains(bookieId)) {
+            if (!allBookies.contains(address)) {
                 LOG.info("Bookie " + bookieId + " does not exist, only " + allBookies);
                 return false;
             }

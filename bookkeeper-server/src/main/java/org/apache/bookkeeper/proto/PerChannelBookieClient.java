@@ -19,11 +19,13 @@
 package org.apache.bookkeeper.proto;
 
 import static org.apache.bookkeeper.client.LedgerHandle.INVALID_ENTRY_ID;
+
 import com.google.common.base.Joiner;
 import com.google.common.collect.Sets;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.ExtensionRegistry;
 import com.google.protobuf.UnsafeByteOperations;
+
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
@@ -58,6 +60,7 @@ import io.netty.util.Recycler;
 import io.netty.util.Recycler.Handle;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
+
 import java.io.IOException;
 import java.net.SocketAddress;
 import java.net.UnknownHostException;
@@ -79,9 +82,11 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.BiPredicate;
-import javax.net.ssl.SSLException;
+
+import javax.net.ssl.SSLHandshakeException;
 import javax.net.ssl.SSLPeerUnverifiedException;
 import lombok.SneakyThrows;
+
 import org.apache.bookkeeper.auth.BookKeeperPrincipal;
 import org.apache.bookkeeper.auth.ClientAuthProvider;
 import org.apache.bookkeeper.client.BKException;
@@ -404,7 +409,7 @@ public class PerChannelBookieClient extends ChannelInboundHandlerAdapter {
         }
 
         this.statsLogger = parentStatsLogger.scope(BookKeeperClientStats.CHANNEL_SCOPE)
-            .scopeLabel(BookKeeperClientStats.BOOKIE_LABEL, bookieId.toString());
+            .scope(buildStatsLoggerScopeName(bookieId));
 
         readEntryOpLogger = statsLogger.getOpStatsLogger(BookKeeperClientStats.CHANNEL_READ_OP);
         addEntryOpLogger = statsLogger.getOpStatsLogger(BookKeeperClientStats.CHANNEL_ADD_OP);
@@ -504,7 +509,14 @@ public class PerChannelBookieClient extends ChannelInboundHandlerAdapter {
         };
     }
 
+    public static String buildStatsLoggerScopeName(BookieId addr) {
+        StringBuilder nameBuilder = new StringBuilder();
+        nameBuilder.append(addr.toString().replace('.', '_').replace('-', '_').replace(":", "_"));
+        return nameBuilder.toString();
+    }
+
     private void completeOperation(GenericCallback<PerChannelBookieClient> op, int rc) {
+        //Thread.dumpStack();
         closeLock.readLock().lock();
         try {
             if (ConnectionState.CLOSED == state) {
@@ -530,7 +542,7 @@ public class PerChannelBookieClient extends ChannelInboundHandlerAdapter {
         try {
             addr = bookieAddressResolver.resolve(bookieId);
         } catch (BookieAddressResolver.BookieIdNotResolvedException err) {
-            LOG.error("Cannot connect to {} as endpoint resolution failed (probably bookie is down) err {}",
+            LOG.error("Cannot connect to {} as endpoint resolution failed (probably bookie is down)",
                     bookieId, err.toString());
             return processBookieNotResolvedError(startTime, err);
         }
@@ -1270,10 +1282,7 @@ public class PerChannelBookieClient extends ChannelInboundHandlerAdapter {
             return;
         }
 
-        // TLSv1.3 doesn't throw SSLHandshakeException for certificate issues
-        // see https://stackoverflow.com/a/62465859 for details about the reason
-        // therefore catch SSLException to also cover TLSv1.3
-        if (cause instanceof DecoderException && cause.getCause() instanceof SSLException) {
+        if (cause instanceof DecoderException && cause.getCause() instanceof SSLHandshakeException) {
             LOG.error("TLS handshake failed", cause);
             errorOutPendingOps(BKException.Code.SecurityException);
             Channel c = ctx.channel();

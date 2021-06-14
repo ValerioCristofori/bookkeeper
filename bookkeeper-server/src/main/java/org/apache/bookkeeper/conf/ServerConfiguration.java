@@ -22,9 +22,6 @@ import static org.apache.bookkeeper.util.BookKeeperConstants.MAX_LOG_SIZE_LIMIT;
 import com.google.common.annotations.Beta;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
-// CHECKSTYLE.OFF: IllegalImport
-import io.netty.util.internal.PlatformDependent;
-// CHECKSTYLE.ON: IllegalImport
 import java.io.File;
 import java.util.concurrent.TimeUnit;
 import org.apache.bookkeeper.bookie.InterleavedLedgerStorage;
@@ -96,10 +93,8 @@ public class ServerConfiguration extends AbstractConfiguration<ServerConfigurati
     protected static final String FORCE_ALLOW_COMPACTION = "forceAllowCompaction";
     protected static final String MINOR_COMPACTION_INTERVAL = "minorCompactionInterval";
     protected static final String MINOR_COMPACTION_THRESHOLD = "minorCompactionThreshold";
-    protected static final String MINOR_COMPACTION_MAX_TIME_MILLIS = "minorCompactionMaxTimeMillis";
     protected static final String MAJOR_COMPACTION_INTERVAL = "majorCompactionInterval";
     protected static final String MAJOR_COMPACTION_THRESHOLD = "majorCompactionThreshold";
-    protected static final String MAJOR_COMPACTION_MAX_TIME_MILLIS = "majorCompactionMaxTimeMillis";
     protected static final String IS_THROTTLE_BY_BYTES = "isThrottleByBytes";
     protected static final String COMPACTION_MAX_OUTSTANDING_REQUESTS = "compactionMaxOutstandingRequests";
     protected static final String COMPACTION_RATE = "compactionRate";
@@ -131,7 +126,6 @@ public class ServerConfiguration extends AbstractConfiguration<ServerConfigurati
     protected static final String MAX_JOURNAL_SIZE = "journalMaxSizeMB";
     protected static final String MAX_BACKUP_JOURNALS = "journalMaxBackups";
     protected static final String JOURNAL_SYNC_DATA = "journalSyncData";
-    protected static final String JOURNAL_WRITE_DATA = "journalWriteData";
     protected static final String JOURNAL_ADAPTIVE_GROUP_WRITES = "journalAdaptiveGroupWrites";
     protected static final String JOURNAL_MAX_GROUP_WAIT_MSEC = "journalMaxGroupWaitMSec";
     protected static final String JOURNAL_BUFFERED_WRITES_THRESHOLD = "journalBufferedWritesThreshold";
@@ -144,7 +138,6 @@ public class ServerConfiguration extends AbstractConfiguration<ServerConfigurati
     protected static final String NUM_JOURNAL_CALLBACK_THREADS = "numJournalCallbackThreads";
     protected static final String JOURNAL_FORMAT_VERSION_TO_WRITE = "journalFormatVersionToWrite";
     protected static final String JOURNAL_QUEUE_SIZE = "journalQueueSize";
-    protected static final String JOURNAL_MAX_MEMORY_SIZE_MB = "journalMaxMemorySizeMb";
     protected static final String JOURNAL_PAGECACHE_FLUSH_INTERVAL_MSEC = "journalPageCacheFlushIntervalMSec";
     // backpressure control
     protected static final String MAX_ADDS_IN_PROGRESS_LIMIT = "maxAddsInProgressLimit";
@@ -825,29 +818,6 @@ public class ServerConfiguration extends AbstractConfiguration<ServerConfigurati
     }
 
     /**
-     * Set the max amount of memory that can be used by the journal.
-     *
-     * @param journalMaxMemorySizeMb
-     *            the max amount of memory for the journal
-     * @return server configuration.
-     */
-    public ServerConfiguration setJournalMaxMemorySizeMb(long journalMaxMemorySizeMb) {
-        this.setProperty(JOURNAL_MAX_MEMORY_SIZE_MB, journalMaxMemorySizeMb);
-        return this;
-    }
-
-    /**
-     * Get the max amount of memory that can be used by the journal.
-     *
-     * @return the max amount of memory for the journal
-     */
-    public long getJournalMaxMemorySizeMb() {
-        // Default is taking 5% of max direct memory (and convert to MB).
-        long defaultValue = (long) (PlatformDependent.maxDirectMemory() * 0.05 / 1024 / 1024);
-        return this.getLong(JOURNAL_MAX_MEMORY_SIZE_MB, defaultValue);
-    }
-
-    /**
      * Set PageCache flush interval in second.
      *
      * @Param journalPageCacheFlushInterval
@@ -1093,7 +1063,7 @@ public class ServerConfiguration extends AbstractConfiguration<ServerConfigurati
      * Configure the bookie to advertise a specific address.
      *
      * <p>By default, a bookie will advertise either its own IP or hostname,
-     * depending on the {@link #getUseHostNameAsBookieID()} setting.
+     * depending on the {@link getUseHostNameAsBookieID()} setting.
      *
      * <p>When the advertised is set to a non-empty string, the bookie will
      * register and advertise using this address.
@@ -1362,7 +1332,7 @@ public class ServerConfiguration extends AbstractConfiguration<ServerConfigurati
      * This is the number of threads used by Netty to handle TCP connections.
      * </p>
      *
-     * @see #getServerNumIOThreads()
+     * @see #getNumIOThreads()
      * @param numThreads number of IO threads used for bookkeeper
      * @return client configuration
      */
@@ -1560,33 +1530,6 @@ public class ServerConfiguration extends AbstractConfiguration<ServerConfigurati
     }
 
     /**
-     * Get the maximum milliseconds to run major compaction. If <= 0 the
-     * thread will run until all compaction is completed.
-     *
-     * @return limit
-     *           The number of milliseconds to run compaction.
-     */
-    public long getMajorCompactionMaxTimeMillis() {
-        return getLong(MAJOR_COMPACTION_MAX_TIME_MILLIS, -1);
-    }
-
-    /**
-     * Set the maximum milliseconds to run major compaction. If <= 0 the
-     * thread will run until all compaction is completed.
-     *
-     * @see #getMajorCompactionMaxTimeMillis()
-     *
-     * @param majorCompactionMaxTimeMillis
-     *           The number of milliseconds to run compaction.
-     *
-     * @return  server configuration
-     */
-    public ServerConfiguration setMajorCompactionMaxTimeMillis(long majorCompactionMaxTimeMillis) {
-        setProperty(MAJOR_COMPACTION_MAX_TIME_MILLIS, majorCompactionMaxTimeMillis);
-        return this;
-    }
-
-    /**
      * Get interval to run minor compaction, in seconds.
      *
      * <p>If it is set to less than zero, the minor compaction is disabled.
@@ -1633,33 +1576,6 @@ public class ServerConfiguration extends AbstractConfiguration<ServerConfigurati
      */
     public ServerConfiguration setMajorCompactionInterval(long interval) {
         setProperty(MAJOR_COMPACTION_INTERVAL, interval);
-        return this;
-    }
-
-    /**
-     * Get the maximum milliseconds to run minor compaction. If <= 0 the
-     * thread will run until all compaction is completed.
-     *
-     * @return limit
-     *           The number of milliseconds to run compaction.
-     */
-    public long getMinorCompactionMaxTimeMillis() {
-        return getLong(MINOR_COMPACTION_MAX_TIME_MILLIS, -1);
-    }
-
-    /**
-     * Set the maximum milliseconds to run minor compaction. If <= 0 the
-     * thread will run until all compaction is completed.
-     *
-     * @see #getMinorCompactionMaxTimeMillis()
-     *
-     * @param minorCompactionMaxTimeMillis
-     *           The number of milliseconds to run compaction.
-     *
-     * @return  server configuration
-     */
-    public ServerConfiguration setMinorCompactionMaxTimeMillis(long minorCompactionMaxTimeMillis) {
-        setProperty(MINOR_COMPACTION_MAX_TIME_MILLIS, minorCompactionMaxTimeMillis);
         return this;
     }
 
@@ -2106,29 +2022,6 @@ public class ServerConfiguration extends AbstractConfiguration<ServerConfigurati
      */
     public boolean getJournalSyncData() {
         return getBoolean(JOURNAL_SYNC_DATA, true);
-    }
-
-    /**
-     * Should the data be written to journal before acknowledgment.
-     *
-     * <p>Default is true
-     *
-     * @return
-     */
-    public boolean getJournalWriteData() {
-        return getBoolean(JOURNAL_WRITE_DATA, true);
-    }
-
-    /**
-     * Should the data be written to journal before acknowledgment.
-     *
-     * <p>Default is true
-     *
-     * @return
-     */
-    public ServerConfiguration setJournalWriteData(boolean journalWriteData) {
-        setProperty(JOURNAL_WRITE_DATA, journalWriteData);
-        return this;
     }
 
     /**

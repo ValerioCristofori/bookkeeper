@@ -489,7 +489,7 @@ public class BookieShell implements Tool {
 
         @Override
         String getUsage() {
-            return "recover [-deleteCookie] <bookieSrc[,bookieSrc,...]>";
+            return "recover [-deleteCookie] <bookieSrc[:bookieSrc]>";
         }
 
         @Override
@@ -2186,12 +2186,12 @@ public class BookieShell implements Tool {
     @Override
     public void setConf(CompositeConfiguration conf) throws Exception {
         bkConf.loadConf(conf);
-        journalDirectories = BookieImpl.getCurrentDirectories(bkConf.getJournalDirs());
-        ledgerDirectories = BookieImpl.getCurrentDirectories(bkConf.getLedgerDirs());
+        journalDirectories = Bookie.getCurrentDirectories(bkConf.getJournalDirs());
+        ledgerDirectories = Bookie.getCurrentDirectories(bkConf.getLedgerDirs());
         if (null == bkConf.getIndexDirs()) {
             indexDirectories = ledgerDirectories;
         } else {
-            indexDirectories = BookieImpl.getCurrentDirectories(bkConf.getIndexDirs());
+            indexDirectories = Bookie.getCurrentDirectories(bkConf.getIndexDirs());
         }
         pageSize = bkConf.getPageSize();
         entriesPerPage = pageSize / 8;

@@ -814,7 +814,7 @@ public class EntryLogger {
     }
 
     public ByteBuf internalReadEntry(long ledgerId, long entryId, long location, boolean validateEntry)
-            throws IOException {
+            throws IOException, Bookie.NoEntryException {
         long entryLogId = logIdForOffset(location);
         long pos = posForOffset(location);
 
@@ -1009,8 +1009,9 @@ public class EntryLogger {
                     continue;
                 }
                 // read the entry
+
                 data.clear();
-                if (entrySize <= 0) {
+                if (entrySize < 0) {
                     LOG.warn("bad read for ledger entry from entryLog {}@{} (entry size {})",
                             entryLogId, pos, entrySize);
                     return;

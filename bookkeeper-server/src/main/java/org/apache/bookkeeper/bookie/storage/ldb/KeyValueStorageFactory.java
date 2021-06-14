@@ -37,7 +37,6 @@ public interface KeyValueStorageFactory {
         Huge // Used for location index, lots of writes and much bigger dataset
     }
 
-    KeyValueStorage newKeyValueStorage(String defaultBasePath, String subPath, DbConfigType dbConfigType,
-                                       ServerConfiguration conf)
+    KeyValueStorage newKeyValueStorage(String path, DbConfigType dbConfigType, ServerConfiguration conf)
             throws IOException;
 }

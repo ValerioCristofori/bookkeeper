@@ -27,6 +27,7 @@ import io.netty.buffer.ByteBuf;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.nio.file.FileSystems;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.Arrays;
 import java.util.Map.Entry;
@@ -65,7 +66,8 @@ public class LedgerMetadataIndex implements Closeable {
 
     public LedgerMetadataIndex(ServerConfiguration conf, KeyValueStorageFactory storageFactory, String basePath,
             StatsLogger stats) throws IOException {
-        ledgersDb = storageFactory.newKeyValueStorage(basePath, "ledgers", DbConfigType.Small, conf);
+        String ledgersPath = FileSystems.getDefault().getPath(basePath, "ledgers").toFile().toString();
+        ledgersDb = storageFactory.newKeyValueStorage(ledgersPath, DbConfigType.Small, conf);
 
         ledgers = new ConcurrentLongHashMap<>();
         ledgersCount = new AtomicInteger();
@@ -226,16 +228,13 @@ public class LedgerMetadataIndex implements Closeable {
 
     public void removeDeletedLedgers() throws IOException {
         LongWrapper key = LongWrapper.get();
-        final byte[] startKey = new byte[key.array.length];
 
         int deletedLedgers = 0;
         while (!pendingDeletedLedgers.isEmpty()) {
             long ledgerId = pendingDeletedLedgers.poll();
             key.set(ledgerId);
             ledgersDb.delete(key.array);
-            if (deletedLedgers++ == 0) {
-                System.arraycopy(key.array, 0, startKey, 0, startKey.length);
-            }
+            deletedLedgers++;
         }
 
         if (log.isDebugEnabled()) {
@@ -243,9 +242,6 @@ public class LedgerMetadataIndex implements Closeable {
         }
 
         ledgersDb.sync();
-        if (deletedLedgers != 0) {
-            ledgersDb.compact(startKey, key.array);
-        }
         key.recycle();
     }
 

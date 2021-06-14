@@ -19,8 +19,7 @@ package org.apache.bookkeeper.stats.prometheus;
 import com.google.common.base.Joiner;
 
 import io.prometheus.client.Collector;
-import java.util.Map;
-import java.util.TreeMap;
+
 import org.apache.bookkeeper.stats.Counter;
 import org.apache.bookkeeper.stats.Gauge;
 import org.apache.bookkeeper.stats.OpStatsLogger;
@@ -33,27 +32,25 @@ public class PrometheusStatsLogger implements StatsLogger {
 
     private final PrometheusMetricsProvider provider;
     private final String scope;
-    private final Map<String, String> labels;
 
-    PrometheusStatsLogger(PrometheusMetricsProvider provider, String scope, Map<String, String> labels) {
+    PrometheusStatsLogger(PrometheusMetricsProvider provider, String scope) {
         this.provider = provider;
         this.scope = scope;
-        this.labels = labels;
     }
 
     @Override
     public OpStatsLogger getOpStatsLogger(String name) {
-        return provider.opStats.computeIfAbsent(scopeContext(name), x -> new DataSketchesOpStatsLogger(labels));
+        return provider.opStats.computeIfAbsent(completeName(name), x -> new DataSketchesOpStatsLogger());
     }
 
     @Override
     public Counter getCounter(String name) {
-        return provider.counters.computeIfAbsent(scopeContext(name), x -> new LongAdderCounter(labels));
+        return provider.counters.computeIfAbsent(completeName(name), x -> new LongAdderCounter());
     }
 
     @Override
     public <T extends Number> void registerGauge(String name, Gauge<T> gauge) {
-        provider.gauges.computeIfAbsent(scopeContext(name), x -> new SimpleGauge<T>(gauge, labels));
+        provider.gauges.computeIfAbsent(completeName(name), x -> new SimpleGauge<T>(gauge));
     }
 
     @Override
@@ -68,21 +65,11 @@ public class PrometheusStatsLogger implements StatsLogger {
 
     @Override
     public StatsLogger scope(String name) {
-        return new PrometheusStatsLogger(provider, completeName(name), labels);
-    }
-
-    @Override
-    public StatsLogger scopeLabel(String labelName, String labelValue) {
-        Map<String, String> newLabels = new TreeMap<>(labels);
-        newLabels.put(labelName, labelValue);
-        return new PrometheusStatsLogger(provider, scope, newLabels);
-    }
-
-    private ScopeContext scopeContext(String name) {
-        return new ScopeContext(completeName(name), labels);
+        return new PrometheusStatsLogger(provider, completeName(name));
     }
 
     private String completeName(String name) {
-        return Collector.sanitizeMetricName(scope.isEmpty() ? name : Joiner.on('_').join(scope, name));
+        String completeName = scope.isEmpty() ? name : Joiner.on('_').join(scope, name);
+        return Collector.sanitizeMetricName(completeName);
     }
 }

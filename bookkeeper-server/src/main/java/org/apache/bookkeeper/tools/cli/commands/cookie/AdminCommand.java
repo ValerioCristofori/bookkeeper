@@ -20,6 +20,7 @@ package org.apache.bookkeeper.tools.cli.commands.cookie;
 
 import static org.apache.bookkeeper.meta.MetadataDrivers.runFunctionWithMetadataBookieDriver;
 import static org.apache.bookkeeper.meta.MetadataDrivers.runFunctionWithRegistrationManager;
+
 import com.beust.jcommander.Parameter;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.UncheckedExecutionException;
@@ -30,8 +31,8 @@ import java.util.LinkedList;
 import java.util.List;
 import lombok.Setter;
 import lombok.experimental.Accessors;
+import org.apache.bookkeeper.bookie.Bookie;
 import org.apache.bookkeeper.bookie.BookieException;
-import org.apache.bookkeeper.bookie.BookieImpl;
 import org.apache.bookkeeper.bookie.Cookie;
 import org.apache.bookkeeper.conf.ServerConfiguration;
 import org.apache.bookkeeper.net.BookieId;
@@ -109,12 +110,12 @@ public class AdminCommand extends BookieCommand<AdminCommand.AdminFlags> {
     }
 
     private void initDirectory(ServerConfiguration bkConf) {
-        this.journalDirectories = BookieImpl.getCurrentDirectories(bkConf.getJournalDirs());
-        this.ledgerDirectories = BookieImpl.getCurrentDirectories(bkConf.getLedgerDirs());
+        this.journalDirectories = Bookie.getCurrentDirectories(bkConf.getJournalDirs());
+        this.ledgerDirectories = Bookie.getCurrentDirectories(bkConf.getLedgerDirs());
         if (null == bkConf.getIndexDirs()) {
             this.indexDirectories = this.ledgerDirectories;
         } else {
-            this.indexDirectories = BookieImpl.getCurrentDirectories(bkConf.getIndexDirs());
+            this.indexDirectories = Bookie.getCurrentDirectories(bkConf.getIndexDirs());
         }
     }
 
@@ -148,7 +149,7 @@ public class AdminCommand extends BookieCommand<AdminCommand.AdminFlags> {
         return runFunctionWithRegistrationManager(bkConf, rm -> {
             try {
                 ServerConfiguration conf = new ServerConfiguration(bkConf);
-                String newBookieId = BookieImpl.getBookieId(conf).toString();
+                String newBookieId = Bookie.getBookieId(conf).toString();
                 // read oldcookie
                 Versioned<Cookie> oldCookie = null;
                 try {
@@ -235,8 +236,8 @@ public class AdminCommand extends BookieCommand<AdminCommand.AdminFlags> {
             }
 
             try {
-                BookieImpl.checkEnvironmentWithStorageExpansion(bkConf, driver, Arrays.asList(journalDirectories),
-                                                                allLedgerDirs);
+                Bookie.checkEnvironmentWithStorageExpansion(bkConf, driver, Arrays.asList(journalDirectories),
+                                                            allLedgerDirs);
                 return true;
             } catch (BookieException e) {
                 LOG.error("Exception while updating cookie for storage expansion", e);
@@ -246,7 +247,7 @@ public class AdminCommand extends BookieCommand<AdminCommand.AdminFlags> {
     }
 
     private boolean listOrDeleteCookies(ServerConfiguration bkConf, boolean delete, boolean force) throws Exception {
-        BookieId bookieAddress = BookieImpl.getBookieId(bkConf);
+        BookieId bookieAddress = Bookie.getBookieId(bkConf);
         File[] journalDirs = bkConf.getJournalDirs();
         File[] ledgerDirs = bkConf.getLedgerDirs();
         File[] indexDirs = bkConf.getIndexDirs();
@@ -255,7 +256,7 @@ public class AdminCommand extends BookieCommand<AdminCommand.AdminFlags> {
             allDirs = ArrayUtils.addAll(allDirs, indexDirs);
         }
 
-        File[] allCurDirs = BookieImpl.getCurrentDirectories(allDirs);
+        File[] allCurDirs = Bookie.getCurrentDirectories(allDirs);
         List<File> allVersionFiles = new LinkedList<File>();
         File versionFile;
         for (File curDir : allCurDirs) {
