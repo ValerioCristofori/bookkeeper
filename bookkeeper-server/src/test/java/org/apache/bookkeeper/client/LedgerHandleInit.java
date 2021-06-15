@@ -56,7 +56,8 @@ public class LedgerHandleInit {
         long ledgerId = test.setLedgerIdRandom();
         //build ledger
         when( this.ledgerManagerFactory.newLedgerManager() ).thenReturn(this.ledgerManager);
-        when( ledgerManager.createLedgerMetadata(ledgerId,any())).thenReturn();
+        //when( ledgerManager.createLedgerMetadata(ledgerId,any())).thenReturn();
+
         //build client context
         when(clientContext).thenReturn(this.bookKeeper.getClientCtx());
 
