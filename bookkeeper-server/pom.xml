@@ -341,8 +341,7 @@
             <version>1.6.2</version>
             <configuration>
               <targetClasses>
-                <param>org.apache.bookkeeper.bookie.storage.ldb.LedgerMetadataIndex</param>
-                <param>org.apache.bookkeeper.client.LedgerHandleInit</param>
+                <param>org.apache.bookkeeper.bookie.storage.ldb.LedgerMetadataIndexInit</param>
               </targetClasses>
               <targetTests>
                 <!--<param>org.apache.bookkeeper.client.AsyncAddEntryTest</param>-->

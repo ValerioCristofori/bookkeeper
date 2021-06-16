@@ -191,7 +191,7 @@
     <maven-javadoc-plugin.version>3.1.1</maven-javadoc-plugin.version>
     <maven-shade-plugin.version>3.2.0</maven-shade-plugin.version>
     <maven-source-plugin.version>2.2.1</maven-source-plugin.version>
-    <maven-surefire-plugin.version>2.21.0</maven-surefire-plugin.version>
+    <maven-surefire-plugin.version>3.0.0-M5</maven-surefire-plugin.version>
     <nar-maven-plugin.version>3.5.2</nar-maven-plugin.version>
     <os-maven-plugin.version>1.4.1.Final</os-maven-plugin.version>
     <protobuf-maven-plugin.version>0.6.1</protobuf-maven-plugin.version>
@@ -199,6 +199,10 @@
     <spotbugs-maven-plugin.version>3.1.8</spotbugs-maven-plugin.version>
     <forkCount.variable>1</forkCount.variable>
     <servlet-api.version>4.0.0</servlet-api.version>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+    <maven.compiler.target>1.8</maven.compiler.target>
+    <maven.compiler.source>1.8</maven.compiler.source>
 
     <sonar.projectKey>valeriocristofori:${project.groupId}:${project.artifactId}</sonar.projectKey>
     <sonar.links.homepage>https://github.com/ValerioCristofori/bookkeeper</sonar.links.homepage>
@@ -816,47 +820,71 @@
   </dependencies>
 
   <build>
-    <extensions>
-      <extension>
-        <groupId>kr.motd.maven</groupId>
-        <artifactId>os-maven-plugin</artifactId>
-        <version>${os-maven-plugin.version}</version>
-      </extension>
-    </extensions>
-    <pluginManagement>
-      <plugins>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-checkstyle-plugin</artifactId>
-          <version>${maven-checkstyle-plugin.version}</version>
-          <dependencies>
-            <dependency>
-              <groupId>com.puppycrawl.tools</groupId>
-              <artifactId>checkstyle</artifactId>
-              <version>${puppycrawl.checkstyle.version}</version>
-            </dependency>
-          </dependencies>
-          <configuration>
-            <configLocation>buildtools/src/main/resources/bookkeeper/checkstyle.xml</configLocation>
-            <suppressionsLocation>buildtools/src/main/resources/bookkeeper/suppressions.xml</suppressionsLocation>
-            <encoding>UTF-8</encoding>
-            <consoleOutput>true</consoleOutput>
-            <failOnViolation>true</failOnViolation>
-            <includeResources>false</includeResources>
-            <includeTestSourceDirectory>true</includeTestSourceDirectory>
-          </configuration>
-          <executions>
-            <execution>
-              <id>checkstyle</id>
-              <phase>validate</phase>
-              <goals>
-                <goal>check</goal>
-              </goals>
-            </execution>
-          </executions>
-        </plugin>
-      </plugins>
-    </pluginManagement>
+        <extensions>
+            <extension>
+                <groupId>kr.motd.maven</groupId>
+                <artifactId>os-maven-plugin</artifactId>
+                <version>${os-maven-plugin.version}</version>
+            </extension>
+        </extensions>
+        <pluginManagement>
+            <plugins>
+
+
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>${maven-compiler-plugin.version}</version>
+                    <executions>
+                        <execution>
+                            <phase>verify</phase>
+                        </execution>
+                    </executions>
+                </plugin>
+                <plugin>
+                    <groupId>org.sonarsource.scanner.maven</groupId>
+                    <artifactId>sonar-maven-plugin</artifactId>
+                    <version>3.7.0.1746</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.jacoco</groupId>
+                    <artifactId>jacoco-maven-plugin</artifactId>
+                    <version>0.8.4</version>
+               </plugin>
+
+
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-checkstyle-plugin</artifactId>
+                    <version>${maven-checkstyle-plugin.version}</version>
+                    <dependencies>
+                        <dependency>
+                            <groupId>com.puppycrawl.tools</groupId>
+                            <artifactId>checkstyle</artifactId>
+                            <version>${puppycrawl.checkstyle.version}</version>
+                        </dependency>
+                    </dependencies>
+                    <configuration>
+                        <configLocation>buildtools/src/main/resources/bookkeeper/checkstyle.xml</configLocation>
+                        <suppressionsLocation>buildtools/src/main/resources/bookkeeper/suppressions.xml</suppressionsLocation>
+                        <encoding>UTF-8</encoding>
+                        <consoleOutput>true</consoleOutput>
+                        <failOnViolation>true</failOnViolation>
+                        <includeResources>false</includeResources>
+                        <includeTestSourceDirectory>true</includeTestSourceDirectory>
+                    </configuration>
+                    <executions>
+                        <execution>
+                            <id>checkstyle</id>
+                            <phase>validate</phase>
+                            <goals>
+                                <goal>check</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+            </plugins>
+        </pluginManagement>
     <plugins>
       <plugin>
         <groupId>com.github.spotbugs</groupId>
@@ -901,37 +929,36 @@
         <artifactId>maven-javadoc-plugin</artifactId>
         <version>${maven-javadoc-plugin.version}</version>
         <configuration>
-          <!-- Prevent missing javadoc comments from being marked as errors -->
-          <additionalOptions>
-            <additionalOption>-Xdoclint:none -notimestamp</additionalOption>
-          </additionalOptions>
-          <subpackages>org.apache.bookkeeper.client:org.apache.bookkeeper.client.api:org.apache.bookkeeper.common.annotation:org.apache.bookkeeper.conf:org.apache.bookkeeper.feature:org.apache.bookkeeper.stats</subpackages>
-          <groups>
-            <group>
-              <title>Bookkeeper Client</title>
-              <packages>org.apache.bookkeeper.client:org.apache.bookkeeper.common.annotation:org.apache.bookkeeper.conf:org.apache.bookkeeper.feature</packages>
-            </group>
-            <group>
-              <title>Bookkeeper Client (New Fluent API - Experimental)</title>
-              <packages>org.apache.bookkeeper.client.api</packages>
-            </group>
-            <group>
-              <title>Bookkeeper Stats API</title>
-              <!-- currently codahale is placed under `stats` package unfortunately.
-                   we have done a copy to its own package in future in 4.7.0, will remove it in 4.8.0.
-                   {@link https://github.com/apache/bookkeeper/issues/762} -->
-              <packages>org.apache.bookkeeper.stats</packages>
-            </group>
-            <group>
-              <title>Bookkeeper Stats Providers</title>
-              <packages>org.apache.bookkeeper.stats.codahale:org.apache.bookkeeper.stats.prometheus</packages>
-            </group>
-          </groups>
-          <doctitle>BookKeeper Java API (version ${project.version})</doctitle>
-          <overview>site/_site/overview/index.html</overview>
-          <show>package</show>
-          <detectJavaApiLink>false</detectJavaApiLink>
-        </configuration>
+                    <additionalparam>-notimestamp</additionalparam>
+                    <!-- Prevent missing javadoc comments from being marked as errors -->
+                    <doclint>none</doclint>
+                    <subpackages>org.apache.bookkeeper.client:org.apache.bookkeeper.client.api:org.apache.bookkeeper.common.annotation:org.apache.bookkeeper.conf:org.apache.bookkeeper.feature:org.apache.bookkeeper.stats</subpackages>
+                    <groups>
+                        <group>
+                            <title>Bookkeeper Client</title>
+                            <packages>org.apache.bookkeeper.client:org.apache.bookkeeper.common.annotation:org.apache.bookkeeper.conf:org.apache.bookkeeper.feature</packages>
+                        </group>
+                        <group>
+                            <title>Bookkeeper Client (New Fluent API - Experimental)</title>
+                            <packages>org.apache.bookkeeper.client.api</packages>
+                        </group>
+                        <group>
+                            <title>Bookkeeper Stats API</title>
+                            <!-- currently codahale is placed under `stats` package unfortunately.
+                             we have done a copy to its own package in future in 4.7.0, will remove it in 4.8.0.
+                             {@link https://github.com/apache/bookkeeper/issues/762} -->
+                            <packages>org.apache.bookkeeper.stats</packages>
+                        </group>
+                        <group>
+                            <title>Bookkeeper Stats Providers</title>
+                            <packages>org.apache.bookkeeper.stats.codahale:org.apache.bookkeeper.stats.prometheus</packages>
+                        </group>
+                    </groups>
+                    <doctitle>BookKeeper Java API (version ${project.version})</doctitle>
+                    <overview>site/_site/overview/index.html</overview>
+                    <show>package</show>
+                    <detectJavaApiLink>false</detectJavaApiLink>
+                </configuration>
         <executions>
           <execution>
             <id>aggregate</id>
@@ -1042,17 +1069,10 @@
       <build>
         <plugins>
           <plugin>
-            <groupId>org.jacoco</groupId>
-            <artifactId>jacoco-maven-plugin</artifactId>
-            <executions>
-              <execution>
-                <id>prepare-agent</id>
-                <goals>
-                  <goal>prepare-agent</goal>
-                </goals>
-              </execution>
-            </executions>
-          </plugin>
+              <groupId>org.jacoco</groupId>
+              <artifactId>jacoco-maven-plugin</artifactId>
+              <version>0.8.4</version>
+           </plugin>
         </plugins>
       </build>
     </profile>
