@@ -8,4 +8,5 @@ addons:
     token:
       secure: "BEIMdWKRYgecza4vAIrzQm9kKrbRTqAHoWE1OnxwCGbawZfrtrPvFJzXE5TIz+iDyDuZuHLdHS25X2c2Un1Ka0jkBToE1H+fFiEkDViklnGvJ37vPt+O3oRjcU60LwugNRfi4dC3+v9ktJ50YKdJiTG+lrpWoXivD0Qt0NnQemhl3/fdwcOOvDjXr+P+5mp0X+9yNZkfpas9vjaZOjXn28xtFwxBwOS/ZeJ0pc/qTEWPrABHvKLYA7Kk8kIq2jLpdgAZcX3B5ZABuAJcm2ik5ySThwG9KTJL/LaVVMPIzsnhu27dhw/mkKXx0jVW0UHvHenp0+/cxzCQwdim1uHqR4I2/NcjiLIlQnimyJTA9hdqcbG8J6Vd9vTY00oxOl0Vm7TPjeUC4zWrxmPkfBIkZoJfLKzvsnCB1FW2lMFKMo20LwEP/u4XuZ+451A5X4jTlWwCQTXuNU15tSeZ4tJdoqtVBmsaBxpSzGDt02lsBjKnbVWIwENl614H/2xwfaXdX8v8Ylop4tnEkpjWipk0J/qJicdREJu9SGtHk2i4XE053QQQatUQ+YaUi+YeNH2zAWbdsleEq2F9xR0BYcwcZ/9a79kAgojPeWhJqUmVJK+B9Naafvlk9cD5Nl3T66+UkX0UnDccgbVms4X8r0Nn+ygiJVukwjMmS+SgxZnYhbs="
 script:
-- mvn clean verify sonar:sonar -Dsonar.login=6d7e0a17197e7b0a4da10f6e9a9980d11956c77c
+  - mvn clean org.jacoco:jacoco-maven-plugin:prepare-agent verify sonar:sonar -Dsonar.login=6d7e0a17197e7b0a4da10f6e9a9980d11956c77c
+  - mvn verify -Ppit  -Dmaven.javadoc.skip=true
