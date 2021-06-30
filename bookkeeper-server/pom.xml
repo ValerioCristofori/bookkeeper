@@ -316,15 +316,15 @@
             <configuration>
               <maxMutationPerClass>20</maxMutationPerClass>
               <targetClasses>
-                <param>org.apache.bookkeeper.bookie.storage.ldb.LedgerMetadataIndexInit</param>
-                <!--<param>org.apache.bookkeeper.client.LedgerHandleInit</param>-->
+                <param>org.apache.bookkeeper.client.LedgerHandleInit</param>
               </targetClasses>
               <targetTests>
-                <!--<param>org.apache.bookkeeper.client.AsyncAddEntryTest</param>-->
+                <param>org.apache.bookkeeper.proto.checksum.ComputeDigestTest</param>
+                <param>org.apache.bookkeeper.proto.checksum.VerifyDigestTest</param>
                 <param>org.apache.bookkeeper.bookie.storage.ldb.DeleteLedgerMetadataTest</param>
                 <param>org.apache.bookkeeper.bookie.storage.ldb.GetLedgerMetadataTest</param>
                 <param>org.apache.bookkeeper.bookie.storage.ldb.SetLedgerMetadataTest</param>
-                <param>org.apache.bookkeeper.bookie.storage.ldb.SetMasterKeyTest</param>
+                <param>org.apache.bookkeeper.bookie.storage.ldb.SetMasterKeyTest</param>-->
               </targetTests>
               <avoidCallsTo>
                 <avoidCallsTo>java.util.logging</avoidCallsTo>
