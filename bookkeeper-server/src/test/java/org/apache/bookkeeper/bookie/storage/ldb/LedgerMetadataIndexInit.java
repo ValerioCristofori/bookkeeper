@@ -1,5 +1,8 @@
 package org.apache.bookkeeper.bookie.storage.ldb;
 
+import org.apache.bookkeeper.client.LedgerHandle;
+import org.apache.bookkeeper.client.api.BKException;
+import org.apache.bookkeeper.client.api.LedgerEntry;
 import org.junit.Before;
 import org.junit.Rule;
 import org.mockito.Mock;
@@ -7,9 +10,11 @@ import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
 import java.io.IOException;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.powermock.api.mockito.PowerMockito.when;
@@ -63,5 +68,35 @@ public class LedgerMetadataIndexInit {
 
     protected KeyValueStorage getKeyValueStorage() {
         return keyValueStorage;
+    }
+
+    public static class MySync {
+            long lastConfirmed;
+            public volatile int counter;
+            boolean value;
+            AtomicInteger rc = new AtomicInteger(BKException.Code.OK);
+            Enumeration<LedgerEntry> ls = null;
+
+            public MySync() {
+                counter = 0;
+                lastConfirmed = LedgerHandle.INVALID_ENTRY_ID;
+                value = false;
+            }
+
+            public void setReturnCode(int rc) {
+                this.rc.compareAndSet(BKException.Code.OK, rc);
+            }
+
+            int getReturnCode() {
+                return rc.get();
+            }
+
+            void setLedgerEntries(Enumeration<LedgerEntry> ls) {
+                this.ls = ls;
+            }
+
+            Enumeration<LedgerEntry> getLedgerEntries() {
+                return ls;
+            }
     }
 }
