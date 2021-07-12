@@ -37,7 +37,7 @@ public class DeleteLedgerMetadataTest extends LedgerMetadataIndexInit{
         List<TestParameters> inputs = new ArrayList<>();
 
         inputs.add(new TestParameters((long) -1, false));
-        inputs.add(new TestParameters((long) 0, true));
+        inputs.add(new TestParameters( 0, true));
         inputs.add(new TestParameters(1L, true));
 
         return inputs;
@@ -64,9 +64,7 @@ public class DeleteLedgerMetadataTest extends LedgerMetadataIndexInit{
     @Before
     public void setup() throws IOException {
         Map<byte[], byte[]> ledgerDataMap = new HashMap<>();
-        ByteBuffer buffer = ByteBuffer.allocate(Long.BYTES);
-        buffer.putLong(this.ledgerId);
-        this.ledgerIdByte = buffer.array();
+        this.ledgerIdByte = ByteBuffer.allocate(Long.BYTES).putLong(this.ledgerId).array();
 
         if (this.exist) {
             this.ledgerData = DbLedgerStorageDataFormats.LedgerData.newBuilder().setExists(true).setFenced(false).setMasterKey(ByteString.EMPTY).build();
@@ -79,16 +77,15 @@ public class DeleteLedgerMetadataTest extends LedgerMetadataIndexInit{
 
     @Test(expected = Bookie.NoLedgerException.class)
     public void setLedgerMetadataTest() throws Exception {
-        DbLedgerStorageDataFormats.LedgerData ledgerData = null;
-        Long otherLegerId = this.ledgerId + 1;
-
         this.ledgerMetadataIndex.delete(this.ledgerId);
         this.ledgerMetadataIndex.flush();
 
+        //verifico che non sia mai stato inserita la entry nel db mockato
         verify(super.getKeyValueStorage(), never()).put(eq(this.ledgerIdByte), any());
-
         this.ledgerMetadataIndex.removeDeletedLedgers();
+        // verifico che e' stato eliminato dal db
         verify(super.getKeyValueStorage()).delete(this.ledgerIdByte);
+        //chiamo la get per verificare che il ledger e' stato cancellato -> NoLedgerException
         this.ledgerMetadataIndex.get(this.ledgerId);
     }
     

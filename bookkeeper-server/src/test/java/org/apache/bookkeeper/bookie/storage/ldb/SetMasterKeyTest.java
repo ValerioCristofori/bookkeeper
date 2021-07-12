@@ -50,12 +50,17 @@ public class SetMasterKeyTest extends LedgerMetadataIndexInit{
             exist: {true}, {false}
             masterKey: {valid}, {empty}
          */
-        listInput.add(new TestParameters((long) -1, false, "masterKey".getBytes(), new byte[0],null));
-        listInput.add(new TestParameters((long) 0, true, new byte[0], new byte[0],null));
-        listInput.add(new TestParameters((long) 1, true, "masterKey".getBytes(), new byte[0],null));
-        listInput.add(new TestParameters((long) 1, true, new byte[0], "masterKey".getBytes(),null));
-        listInput.add(new TestParameters((long) 1, true, "anotherMasterKey".getBytes(), "masterKey".getBytes(),IOException.class));
-        listInput.add(new TestParameters((long) 1, true, "masterKey".getBytes(), "masterKey".getBytes(),null));
+        // no metadata exist in ledger index
+        listInput.add(new TestParameters(-1, false, "masterKey".getBytes(), new byte[0],null));
+
+        // empty master key
+        listInput.add(new TestParameters( 0, true, new byte[0], new byte[0],null));
+        listInput.add(new TestParameters( 1, true, new byte[0], "masterKey".getBytes(),null));
+
+        // valid master key
+        listInput.add(new TestParameters( 1, true, "masterKey".getBytes(), new byte[0],null));
+        listInput.add(new TestParameters( 1, true, "anotherMasterKey".getBytes(), "masterKey".getBytes(),IOException.class));
+        listInput.add(new TestParameters( 1, true, "masterKey".getBytes(), "masterKey".getBytes(),null));
 
         return listInput;
     }
@@ -98,12 +103,14 @@ public class SetMasterKeyTest extends LedgerMetadataIndexInit{
 
     @Before
     public void setup() throws IOException {
-        Map<byte[], byte[]> ledgerDataMap = new HashMap<>();
+        Map<byte[], byte[]> ledgerDataMap = new HashMap<>(); // chiave e' il ledger id, valore sono i metadati per quel ledger
         this.ledgerIdByte = ByteBuffer.allocate(Long.BYTES)
                 .putLong(this.ledgerId)
                 .array();
 
         if (this.exist) {
+            // esiste gia' un master key
+            // aggiungo il prev master key ai metadati
             DbLedgerStorageDataFormats.LedgerData ledgerData = DbLedgerStorageDataFormats.LedgerData.newBuilder().setExists(true).setFenced(false).setMasterKey(ByteString.copyFrom(this.prevMasterKey)).build();
             ledgerDataMap.put(ledgerIdByte, ledgerData.toByteArray());
             super.setLedgerDataMap(ledgerDataMap);
@@ -116,17 +123,18 @@ public class SetMasterKeyTest extends LedgerMetadataIndexInit{
     @Test
     public void setMasterKeyTest() throws Exception {
         this.ledgerMetadataIndex.setMasterKey(this.ledgerId, this.masterKey);
-        this.ledgerMetadataIndex.flush();
+        this.ledgerMetadataIndex.flush(); //flush di tutti i cambiamenti non effettuati e in stato pending
 
         DbLedgerStorageDataFormats.LedgerData actualLedgerData = this.ledgerMetadataIndex.get(this.ledgerId);
 
-        Assert.assertNotNull(actualLedgerData);
+        Assert.assertNotNull(actualLedgerData); //fallisci se null
 
         String newMasterKey = Arrays.toString(this.masterKey);
         String oldMasterKey = Arrays.toString(this.prevMasterKey);
 
-        String expectedMasterKey = null;
-        byte[] expectedMasterKeyBytes = null;
+        String expectedMasterKey;
+        byte[] expectedMasterKeyBytes;
+        // imposto il valore del primo master key che mi aspetto di leggere
         if (this.prevMasterKey.length == 0 || oldMasterKey.equals(newMasterKey)) {
             expectedMasterKey = newMasterKey;
             expectedMasterKeyBytes = this.masterKey;
@@ -134,11 +142,12 @@ public class SetMasterKeyTest extends LedgerMetadataIndexInit{
             expectedMasterKey = oldMasterKey;
             expectedMasterKeyBytes = this.prevMasterKey;
         }
-
+        // controllo se il valore e' uguale a quello aspettato
         Assert.assertEquals(expectedMasterKey, Arrays.toString(actualLedgerData.getMasterKey().toByteArray()));
-
-        DbLedgerStorageDataFormats.LedgerData expectedLegerData = DbLedgerStorageDataFormats.LedgerData.newBuilder().setExists(true).setFenced(false).setMasterKey(ByteString.copyFrom(expectedMasterKeyBytes)).build();
-        verify(super.getKeyValueStorage()).put(this.ledgerIdByte, expectedLegerData.toByteArray());
+        // costruisco i metadati da passare alla verifica
+        DbLedgerStorageDataFormats.LedgerData expectedLedgerData = DbLedgerStorageDataFormats.LedgerData.newBuilder().setExists(true).setFenced(false).setMasterKey(ByteString.copyFrom(expectedMasterKeyBytes)).build();
+        // test passa se la put e' stata chiamata una e una solo volta con i parametri specificati
+        verify(super.getKeyValueStorage()).put(this.ledgerIdByte, expectedLedgerData.toByteArray());
 
 
     }

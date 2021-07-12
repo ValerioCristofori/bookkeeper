@@ -51,7 +51,7 @@ public class SetLedgerMetadataTest extends LedgerMetadataIndexInit{
          */
         inputs.add(new TestParameters((long) -1, false, null, NullPointerException.class));
         inputs.add(new TestParameters(
-                (long) 0,
+                 0,
                 true,
                 DbLedgerStorageDataFormats.LedgerData.newBuilder()
                         .setExists(true)
@@ -60,7 +60,7 @@ public class SetLedgerMetadataTest extends LedgerMetadataIndexInit{
                         .build(),
         		null));
         inputs.add(new TestParameters(
-                (long) 1,
+                 1,
                 false,
                 DbLedgerStorageDataFormats.LedgerData.newBuilder()
                         .setExists(true)
@@ -107,9 +107,7 @@ public class SetLedgerMetadataTest extends LedgerMetadataIndexInit{
 	@Before
     public void setup() throws IOException {
         Map<byte[], byte[]> ledgerDataMap = new HashMap<>();
-        ByteBuffer buffer = ByteBuffer.allocate(Long.BYTES);
-        buffer.putLong(this.ledgerId);
-        this.ledgerIdByte = buffer.array();
+        this.ledgerIdByte = ByteBuffer.allocate(Long.BYTES).putLong(this.ledgerId).array();
 
         if (this.exist) {
             this.ledgerData = DbLedgerStorageDataFormats.LedgerData.newBuilder().setExists(true).setFenced(false).setMasterKey(ByteString.EMPTY).build();
@@ -129,7 +127,8 @@ public class SetLedgerMetadataTest extends LedgerMetadataIndexInit{
         DbLedgerStorageDataFormats.LedgerData actualLedgerData = this.ledgerMetadataIndex.get(this.ledgerId);
 
         Assert.assertEquals(Arrays.toString(this.ledgerData.toByteArray()), Arrays.toString(actualLedgerData.toByteArray()));
-
+        // dopo aver verificato che il ledger aspettato sia uguale a quello attuale
+        // verifico che sia stata realmente chiamata la put sul db mockato
         verify(super.getKeyValueStorage()).put(this.ledgerIdByte, this.ledgerData.toByteArray());
     }
 

@@ -114,6 +114,7 @@ public class ComputeDigestTest {
 
     @Before
     public void setUp() throws GeneralSecurityException {
+        //instanzio un oggetto Digest Manager
         digestManager = DigestManager.instantiate(1, "testPassword".getBytes(), type, UnpooledByteBufAllocator.DEFAULT, useV2Protocol);
 
         testEntry = generateEntry((int)length);
@@ -123,11 +124,12 @@ public class ComputeDigestTest {
     public void testComputeDigestData() {
 
         try {
-            // Assert that the buffer of data contained in the byteBuf is equal to what sent
+            // controllo che il buffer contenuto in byteBuf sia uguale a quello inviato
             ByteBufList byteBuf = digestManager.computeDigestAndPackageForSending(entryId, lastAddConfirmed, length, data);
             Assert.assertEquals(testEntry.readLong(), byteBuf.getBuffer(1).readLong());
 
         } catch (Exception e) {
+            // controllo se il risultato e' l'eccezione che mi aspettavo
             Assert.assertEquals(result, e.getClass());
         }
     }

@@ -99,9 +99,7 @@ public class GetLedgerMetadataTest extends LedgerMetadataIndexInit{
         Map<byte[], byte[]> ledgerDataMap = new HashMap<>();
         if (this.exist && this.ledgerInDb) {
             this.ledgerData = DbLedgerStorageDataFormats.LedgerData.newBuilder().setExists(true).setFenced(true).setMasterKey(ByteString.EMPTY).build();
-            ByteBuffer buffer = ByteBuffer.allocate(Long.BYTES);
-            buffer.putLong(this.ledgerId);
-            this.ledgerIdByte = buffer.array();
+            this.ledgerIdByte = ByteBuffer.allocate(Long.BYTES).putLong(this.ledgerId).array();
             ledgerDataMap.put(ledgerIdByte, ledgerData.toByteArray());
             super.setLedgerDataMap(ledgerDataMap);
         }
@@ -113,18 +111,20 @@ public class GetLedgerMetadataTest extends LedgerMetadataIndexInit{
     public void getTest() throws Exception {
         try {
             if (this.exist && !this.ledgerInDb) {
+                // se non e' nel db, chiamo la set
                 this.ledgerData = DbLedgerStorageDataFormats.LedgerData.newBuilder().setExists(true).setFenced(true).setMasterKey(ByteString.EMPTY).build();
                 this.ledgerMetadataIndex.set(this.ledgerId, this.ledgerData);
             }
 
             if (this.deleted) {
+                // se il ledger e' stato eliminato
                 this.ledgerMetadataIndex.delete(this.ledgerId);
             }
 
         } catch (Exception e) {
             Assert.fail(e.getMessage());
         }
-
+        // prendo il ledger attuale
         DbLedgerStorageDataFormats.LedgerData actualLedgerData = this.ledgerMetadataIndex.get(this.ledgerId);
 
         Assert.assertNotNull(actualLedgerData);

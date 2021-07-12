@@ -1,8 +1,5 @@
 package org.apache.bookkeeper.bookie.storage.ldb;
 
-import org.apache.bookkeeper.client.LedgerHandle;
-import org.apache.bookkeeper.client.api.BKException;
-import org.apache.bookkeeper.client.api.LedgerEntry;
 import org.junit.Before;
 import org.junit.Rule;
 import org.mockito.Mock;
@@ -10,11 +7,9 @@ import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
 import java.io.IOException;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.powermock.api.mockito.PowerMockito.when;
@@ -29,11 +24,12 @@ public class LedgerMetadataIndexInit {
     private KeyValueStorage.CloseableIterator<Map.Entry<byte[], byte[]>> closeableIterator;
 
     @Mock
-    private KeyValueStorageFactory keyValueStorageFactory;
+    private KeyValueStorageFactory keyValueStorageFactory; // factory responsabile di instanziare KeyValueStorage
 
     @Mock
     private KeyValueStorage keyValueStorage;
 
+    // stubbing warning e hints printati con System.out
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
@@ -48,8 +44,9 @@ public class LedgerMetadataIndexInit {
         when(keyValueStorage.iterator()).then(invocationOnMock -> {
             this.iterator = this.ledgerDataMap.entrySet().iterator();
             return this.closeableIterator;
-        });
+        }); // setup dei dati del db chiave valore con la mappa: K e' l'id del ledger, V sono i metadati
 
+        // setup dell'iteratore mockato
         if (this.exist) {
             when(this.closeableIterator.hasNext()).then(invocationOnMock -> this.iterator.hasNext());
             when(this.closeableIterator.next()).then(invocationOnMock -> this.iterator.next());
