@@ -50,18 +50,14 @@ public class SetLedgerMetadataTest extends LedgerMetadataIndexInit{
             masterKey: {valid}, {empty}
          */
         inputs.add(new TestParameters((long) -1, false, null, NullPointerException.class));
-        inputs.add(new TestParameters(
-                 0,
-                true,
+        inputs.add(new TestParameters(0, true,
                 DbLedgerStorageDataFormats.LedgerData.newBuilder()
                         .setExists(true)
                         .setFenced(false)
                         .setMasterKey(ByteString.copyFrom("test".getBytes()))
                         .build(),
         		null));
-        inputs.add(new TestParameters(
-                 1,
-                false,
+        inputs.add(new TestParameters(1, false,
                 DbLedgerStorageDataFormats.LedgerData.newBuilder()
                         .setExists(true)
                         .setFenced(false)

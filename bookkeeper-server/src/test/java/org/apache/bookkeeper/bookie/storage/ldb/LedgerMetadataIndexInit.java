@@ -41,16 +41,19 @@ public class LedgerMetadataIndexInit {
     @Before
     public void configMock() throws IOException {
         when(this.keyValueStorageFactory.newKeyValueStorage(any(),any(),any())).thenReturn(this.keyValueStorage);
-        when(keyValueStorage.iterator()).then(invocationOnMock -> {
+
+        // invece di iterare su db itero sull'attributo mappa, simulo
+        when(keyValueStorage.iterator()).then( triggerMock -> {
             this.iterator = this.ledgerDataMap.entrySet().iterator();
             return this.closeableIterator;
         }); // setup dei dati del db chiave valore con la mappa: K e' l'id del ledger, V sono i metadati
 
         // setup dell'iteratore mockato
         if (this.exist) {
-            when(this.closeableIterator.hasNext()).then(invocationOnMock -> this.iterator.hasNext());
-            when(this.closeableIterator.next()).then(invocationOnMock -> this.iterator.next());
+            when(this.closeableIterator.hasNext()).then( triggerMock -> this.iterator.hasNext());
+            when(this.closeableIterator.next()).then( triggerMock -> this.iterator.next());
         } else {
+            // datastore vuoto
             when(this.closeableIterator.hasNext()).thenReturn(false);
         }
     }
